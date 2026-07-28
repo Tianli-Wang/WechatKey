@@ -1,0 +1,977 @@
+page {
+  height: 100%;
+  background: #f7f7fa;
+}
+
+button {
+  font-family: inherit;
+}
+
+.page-scroll {
+  height: 100vh;
+  background:
+    radial-gradient(circle at 8% 5%, rgba(233, 218, 255, 0.6), transparent 30%),
+    radial-gradient(circle at 96% 28%, rgba(216, 242, 255, 0.65), transparent 34%),
+    linear-gradient(155deg, #fbf7fc 0%, #f4f8fb 58%, #faf8f5 100%);
+}
+
+.page {
+  position: relative;
+  min-height: 100vh;
+  padding: calc(32rpx + env(safe-area-inset-top)) 34rpx calc(54rpx + env(safe-area-inset-bottom));
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.ambient {
+  position: absolute;
+  z-index: 0;
+  border-radius: 50%;
+  filter: blur(10rpx);
+  pointer-events: none;
+}
+
+.ambient-left {
+  top: 250rpx;
+  left: -170rpx;
+  width: 420rpx;
+  height: 420rpx;
+  background: rgba(239, 216, 255, 0.28);
+}
+
+.ambient-right {
+  top: 80rpx;
+  right: -180rpx;
+  width: 470rpx;
+  height: 470rpx;
+  background: rgba(213, 241, 255, 0.35);
+}
+
+.nav-bar,
+.telemetry-row,
+.vehicle-stage,
+.control-section,
+.status-panel,
+.safety-note {
+  position: relative;
+  z-index: 1;
+}
+
+.nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transform: translate(-50rpx, 20rpx);
+}
+
+.vehicle-selector {
+  flex: 1;
+  min-width: 0;
+  max-width: 590rpx;
+  padding: 3rpx 0 0;
+  margin: 0;
+  text-align: left;
+  line-height: 1.25;
+  background: transparent;
+}
+
+.vehicle-title-row {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.vehicle-title {
+  display: block;
+  overflow: hidden;
+  color: #171b20;
+  font-size: 33rpx;
+  font-weight: 750;
+  letter-spacing: -1rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.selector-arrow {
+  width: 0;
+  height: 0;
+  margin: 4rpx 0 0 12rpx;
+  border-right: 7rpx solid transparent;
+  border-left: 7rpx solid transparent;
+  border-top: 10rpx solid #a1a9b0;
+  flex-shrink: 0;
+}
+
+.section-eyebrow,
+.status-label,
+.sheet-kicker {
+  display: block;
+  color: #9aa1a8;
+  font-size: 17rpx;
+  font-weight: 700;
+  letter-spacing: 3rpx;
+}
+
+.telemetry-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 150rpx;
+  margin-top: 28rpx;
+}
+
+.battery-overview {
+  min-width: 260rpx;
+}
+
+.battery-value-row {
+  display: flex;
+  align-items: baseline;
+}
+
+.battery-value {
+  color: #18202a;
+  font-size: 66rpx;
+  font-weight: 520;
+  line-height: 1;
+  letter-spacing: -3rpx;
+}
+
+.battery-unit {
+  margin-left: 7rpx;
+  color: #303840;
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.battery-chevron {
+  margin-left: 17rpx;
+  color: #c1c8cd;
+  font-size: 43rpx;
+  font-weight: 300;
+}
+
+.battery-progress {
+  width: 220rpx;
+  height: 11rpx;
+  overflow: hidden;
+  margin-top: 11rpx;
+  background: rgba(137, 148, 159, 0.28);
+  border-radius: 8rpx;
+}
+
+.battery-progress view {
+  height: 100%;
+  max-width: 100%;
+  background: linear-gradient(90deg, #4593ee, #55d9e8);
+  border-radius: 8rpx;
+  transition: width 0.3s;
+}
+
+.battery-caption {
+  display: block;
+  margin-top: 12rpx;
+  color: #424a52;
+  font-size: 24rpx;
+  font-weight: 580;
+}
+
+.wireless-overview {
+  position: absolute;
+  top: 18rpx;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 224rpx;
+  gap: 24rpx;
+  padding-right: 0;
+  box-sizing: border-box;
+}
+
+/* 信号柱在状态行内自然对齐，不使用额外位移 */
+.signal-button {
+  transform: none;
+}
+
+.wireless-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 54rpx;
+  width: 54rpx;
+  height: 54rpx;
+  padding: 0;
+  margin: 0;
+  color: #b8c0c7;
+  line-height: 1;
+  background: transparent;
+  box-sizing: border-box;
+}
+
+
+
+.top-signal-bars {
+  display: flex;
+  align-items: flex-end;
+  height: 37rpx;
+}
+
+.top-signal-bars view {
+  width: 7rpx;
+  margin-right: 8rpx;
+  background: #b9c1c8;
+  border-radius: 5rpx;
+}
+
+.top-signal-bars view:nth-child(1) { height: 15rpx; }
+.top-signal-bars view:nth-child(2) { height: 26rpx; }
+.top-signal-bars view:nth-child(3) { height: 37rpx; }
+
+/* 未连接时保留第一格深色，避免状态图标在浅色背景中看不见 */
+.top-signal-bars view:nth-child(1) {
+  background: #27313b;
+}
+
+.top-signal-bars.active view {
+  background: #27313b;
+}
+
+.bluetooth-button {
+  background: transparent;
+  border-radius: 50%;
+  transition: background 0.2s, transform 0.15s;
+}
+
+/* 手指按下时提供即时的缩放和底色反馈 */
+.bluetooth-button-pressed {
+  background: rgba(83, 151, 219, 0.13);
+  transform: scale(0.88);
+}
+
+/* 正在连接时使用蓝色呼吸动画 */
+.bluetooth-button.connecting {
+  background: rgba(66, 158, 244, 0.1);
+  animation: bluetooth-pulse 0.9s ease-in-out infinite;
+}
+
+/* 连接成功后保持淡绿色状态底色 */
+.bluetooth-button.active {
+  background: rgba(45, 199, 119, 0.1);
+}
+
+.settings-button {
+  background: transparent;
+}
+
+.settings-symbol {
+  width: 39rpx;
+  height: 39rpx;
+  opacity: 0.72;
+}
+
+.bluetooth-symbol {
+  width: 52rpx;
+  height: 43rpx;
+  opacity: 0.42;
+}
+
+.bluetooth-button.active .bluetooth-symbol {
+  opacity: 1;
+}
+
+@keyframes bluetooth-pulse {
+  0%, 100% {
+    transform: scale(0.92);
+    opacity: 0.58;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.vehicle-stage {
+  height: 470rpx;
+  margin-top: -12rpx;
+}
+
+.stage-word {
+  position: absolute;
+  top: 88rpx;
+  left: 50%;
+  color: rgba(39, 50, 59, 0.035);
+  font-size: 172rpx;
+  font-weight: 900;
+  letter-spacing: 20rpx;
+  transform: translateX(-50%);
+}
+
+.vehicle-glow {
+  position: absolute;
+  top: 110rpx;
+  left: 50%;
+  width: 520rpx;
+  height: 260rpx;
+  background: radial-gradient(ellipse, rgba(255, 255, 255, 0.93), rgba(231, 239, 247, 0.14) 64%, transparent 74%);
+  border-radius: 50%;
+  transform: translateX(-50%);
+}
+
+.vehicle-floor {
+  position: absolute;
+  bottom: 67rpx;
+  left: 50%;
+  width: 470rpx;
+  height: 38rpx;
+  background: rgba(45, 53, 59, 0.17);
+  border-radius: 50%;
+  filter: blur(18rpx);
+  transform: translateX(-50%);
+}
+
+.vehicle-image {
+  position: absolute;
+  bottom: 45rpx;
+  left: 50%;
+  width: 650rpx;
+  opacity: 0.72;
+  transform: translateX(-50%);
+  transition: opacity 0.25s, transform 0.25s;
+}
+
+.vehicle-image.compact-vehicle {
+  bottom: 27rpx;
+  width: 590rpx;
+}
+
+.vehicle-image.vehicle-ready {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-4rpx);
+}
+
+.control-section {
+  margin-top: -12rpx;
+}
+
+.section-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 22rpx;
+}
+
+.section-title {
+  display: block;
+  margin-top: 5rpx;
+  color: #1b2025;
+  font-size: 34rpx;
+  font-weight: 760;
+}
+
+.section-status {
+  max-width: 270rpx;
+  overflow: hidden;
+  color: #92999f;
+  font-size: 19rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.control-grid {
+  display: flex;
+  gap: 18rpx;
+}
+
+.control-card {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  height: 222rpx;
+  padding: 24rpx;
+  margin: 0;
+  text-align: left;
+  line-height: 1.3;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1rpx solid rgba(35, 44, 52, 0.07);
+  border-radius: 34rpx;
+  box-shadow: 0 20rpx 44rpx rgba(63, 69, 83, 0.08);
+  box-sizing: border-box;
+}
+
+.power-card {
+  color: #f8fbf9;
+  background: linear-gradient(150deg, #2a3036, #171c21);
+  border-color: transparent;
+}
+
+.power-card.is-powered {
+  color: #152017;
+  background: linear-gradient(145deg, #d6fb77, #b7e847);
+  box-shadow: 0 20rpx 44rpx rgba(166, 213, 66, 0.24);
+}
+
+.control-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 66rpx;
+  height: 66rpx;
+  font-size: 38rpx;
+  font-weight: 700;
+  background: #eef2f4;
+  border-radius: 50%;
+}
+
+.power-icon {
+  color: #172019;
+  background: #c8f459;
+}
+
+.is-powered .power-icon {
+  color: #fff;
+  background: #1e2922;
+}
+
+.locate-icon {
+  color: #242b31;
+  background: #edf1f3;
+}
+
+.control-copy {
+  position: absolute;
+  bottom: 24rpx;
+  left: 24rpx;
+}
+
+.control-title,
+.control-desc,
+.status-label,
+.status-title,
+.metric-number,
+.metric-name,
+.sheet-kicker,
+.sheet-title,
+.sheet-subtitle,
+.device-name,
+.device-id,
+.empty-title,
+.empty-tip,
+.form-label,
+.form-limit,
+.form-help {
+  display: block;
+}
+
+.control-title {
+  font-size: 28rpx;
+  font-weight: 720;
+}
+
+.control-desc {
+  margin-top: 5rpx;
+  color: #91999f;
+  font-size: 19rpx;
+}
+
+.power-card .control-desc {
+  color: rgba(255, 255, 255, 0.52);
+}
+
+.power-card.is-powered .control-desc {
+  color: rgba(23, 34, 25, 0.55);
+}
+
+.control-arrow {
+  position: absolute;
+  top: 26rpx;
+  right: 27rpx;
+  font-size: 26rpx;
+}
+
+.find-card .control-arrow {
+  color: #9ba2a8;
+}
+
+.status-panel {
+  padding: 28rpx;
+  margin-top: 22rpx;
+  background: rgba(232, 238, 242, 0.68);
+  border: 1rpx solid rgba(35, 45, 52, 0.05);
+  border-radius: 30rpx;
+}
+
+.status-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.status-title {
+  margin-top: 5rpx;
+  font-size: 25rpx;
+  font-weight: 680;
+}
+
+.refresh-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 54rpx;
+  height: 54rpx;
+  padding: 0;
+  margin: 0;
+  color: #606970;
+  font-size: 29rpx;
+  line-height: 1;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+}
+
+.status-metrics {
+  display: flex;
+  align-items: center;
+  margin-top: 27rpx;
+}
+
+.status-metric {
+  flex: 1;
+}
+
+.metric-number {
+  color: #252c31;
+  font-size: 25rpx;
+  font-weight: 730;
+}
+
+.metric-name {
+  margin-top: 4rpx;
+  color: #92999f;
+  font-size: 17rpx;
+}
+
+.metric-divider {
+  width: 1rpx;
+  height: 42rpx;
+  margin: 0 20rpx;
+  background: rgba(63, 73, 81, 0.12);
+}
+
+.safety-note {
+  display: block;
+  margin-top: 24rpx;
+  color: #a1a6aa;
+  font-size: 18rpx;
+  text-align: center;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 20;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(16, 21, 25, 0.46);
+  backdrop-filter: blur(9rpx);
+}
+
+.sheet {
+  width: 100%;
+  min-height: 570rpx;
+  max-height: 82vh;
+  padding: 14rpx 32rpx calc(30rpx + env(safe-area-inset-bottom));
+  overflow: hidden;
+  background: #f8fafb;
+  border-radius: 42rpx 42rpx 0 0;
+  box-sizing: border-box;
+}
+
+.sheet-handle {
+  width: 68rpx;
+  height: 7rpx;
+  margin: 0 auto 30rpx;
+  background: #d1d7db;
+  border-radius: 5rpx;
+}
+
+.sheet-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 26rpx;
+}
+
+.sheet-kicker {
+  color: #9ba2a8;
+}
+
+.sheet-title {
+  margin-top: 5rpx;
+  color: #1c2227;
+  font-size: 36rpx;
+  font-weight: 760;
+}
+
+.sheet-subtitle {
+  margin-top: 7rpx;
+  color: #92999f;
+  font-size: 20rpx;
+}
+
+.close-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60rpx;
+  height: 60rpx;
+  padding: 0;
+  margin: 0;
+  color: #525c63;
+  font-size: 40rpx;
+  line-height: 1;
+  background: #e9edef;
+  border-radius: 50%;
+}
+
+.scan-state {
+  display: flex;
+  align-items: center;
+  padding: 17rpx 20rpx;
+  margin-bottom: 18rpx;
+  color: #5d676d;
+  font-size: 21rpx;
+  background: #edf4ef;
+  border-radius: 18rpx;
+}
+
+.spinner {
+  width: 22rpx;
+  height: 22rpx;
+  margin-right: 14rpx;
+  border: 4rpx solid #cbdacb;
+  border-top-color: #8fc337;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.device-list {
+  max-height: 520rpx;
+}
+
+.device-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 20rpx;
+  margin: 0 0 14rpx;
+  text-align: left;
+  line-height: 1.3;
+  background: #fff;
+  border: 1rpx solid #e8ecef;
+  border-radius: 25rpx;
+}
+
+.device-art {
+  position: relative;
+  width: 90rpx;
+  height: 70rpx;
+  margin-right: 20rpx;
+  background: #eef2f3;
+  border-radius: 20rpx;
+}
+
+.device-wheel {
+  position: absolute;
+  bottom: 13rpx;
+  width: 21rpx;
+  height: 21rpx;
+  background: #30373c;
+  border: 4rpx solid #747e84;
+  border-radius: 50%;
+}
+
+.wheel-a { left: 12rpx; }
+.wheel-b { right: 12rpx; }
+
+.device-body {
+  position: absolute;
+  right: 23rpx;
+  bottom: 29rpx;
+  left: 24rpx;
+  height: 10rpx;
+  background: #515b61;
+  border-radius: 8rpx;
+}
+
+.device-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.device-name {
+  overflow: hidden;
+  color: #22292e;
+  font-size: 26rpx;
+  font-weight: 680;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.device-id {
+  overflow: hidden;
+  margin-top: 6rpx;
+  color: #9aa1a6;
+  font-size: 17rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.device-arrow {
+  margin-left: 10rpx;
+  color: #8d959a;
+  font-size: 36rpx;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 62rpx 0;
+}
+
+.empty-radar {
+  position: relative;
+  width: 88rpx;
+  height: 88rpx;
+  margin-bottom: 22rpx;
+  border: 1rpx solid #cbd5d9;
+  border-radius: 50%;
+  box-shadow: 0 0 0 16rpx rgba(217, 226, 230, 0.3);
+}
+
+.empty-radar view {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 15rpx;
+  height: 15rpx;
+  background: #b8e34b;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.empty-title {
+  color: #4c565c;
+  font-size: 25rpx;
+  font-weight: 650;
+}
+
+.empty-tip {
+  margin-top: 9rpx;
+  color: #9aa1a6;
+  font-size: 19rpx;
+}
+
+.settings-sheet {
+  min-height: 690rpx;
+  overflow-y: auto;
+}
+
+.form-group {
+  padding: 25rpx;
+  background: #fff;
+  border: 1rpx solid #e8ecef;
+  border-radius: 24rpx;
+}
+
+.secret-group {
+  margin-top: 18rpx;
+}
+
+.vehicle-name-group {
+  margin-top: 18rpx;
+}
+
+.vehicle-type-list {
+  display: flex;
+  gap: 14rpx;
+}
+
+.vehicle-type-card {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: 190rpx;
+  padding: 12rpx;
+  margin: 0;
+  text-align: left;
+  line-height: 1.2;
+  background: #f2f5f6;
+  border: 2rpx solid transparent;
+  border-radius: 19rpx;
+  box-sizing: border-box;
+}
+
+.vehicle-type-card.selected {
+  background: #f3f9e5;
+  border-color: #afd750;
+}
+
+.vehicle-type-card image {
+  display: block;
+  width: 100%;
+  height: 104rpx;
+}
+
+.type-copy {
+  position: absolute;
+  bottom: 15rpx;
+  left: 15rpx;
+}
+
+.type-name,
+.type-desc {
+  display: block;
+}
+
+.type-name {
+  color: #2b3338;
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
+.type-desc {
+  margin-top: 2rpx;
+  color: #929a9f;
+  font-size: 15rpx;
+}
+
+.type-radio {
+  position: absolute;
+  right: 14rpx;
+  bottom: 17rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24rpx;
+  height: 24rpx;
+  border: 2rpx solid #b9c0c4;
+  border-radius: 50%;
+}
+
+.vehicle-type-card.selected .type-radio {
+  border-color: #8bb72c;
+}
+
+.type-radio view {
+  width: 12rpx;
+  height: 12rpx;
+  background: transparent;
+  border-radius: 50%;
+}
+
+.vehicle-type-card.selected .type-radio view {
+  background: #93c22e;
+}
+
+.form-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.form-label {
+  margin-bottom: 14rpx;
+  color: #2a3136;
+  font-size: 23rpx;
+  font-weight: 670;
+}
+
+.form-limit {
+  color: #9ba2a7;
+  font-size: 17rpx;
+}
+
+.vehicle-name-input {
+  display: flex;
+  align-items: center;
+  height: 82rpx;
+  overflow: hidden;
+  background: #f1f4f5;
+  border-radius: 16rpx;
+}
+
+.name-prefix {
+  padding-left: 20rpx;
+  color: #4f595f;
+  font-size: 26rpx;
+  font-weight: 650;
+}
+
+.suffix-input {
+  flex: 1;
+  height: 82rpx;
+  padding: 0 20rpx 0 2rpx;
+  font-size: 26rpx;
+}
+
+.secret-input {
+  height: 82rpx;
+  padding: 0 20rpx;
+  font-size: 26rpx;
+  background: #f1f4f5;
+  border-radius: 16rpx;
+}
+
+.form-help {
+  margin-top: 13rpx;
+  color: #969ea3;
+  font-size: 18rpx;
+}
+
+.sync-name-button {
+  height: 70rpx;
+  padding: 0;
+  margin-top: 19rpx;
+  color: #27301c;
+  font-size: 23rpx;
+  font-weight: 680;
+  line-height: 70rpx;
+  background: #d5f776;
+  border-radius: 16rpx;
+}
+
+.sync-name-button[disabled] {
+  color: #929b94;
+  background: #edf1ef;
+}
+
+.save-button,
+.danger-button {
+  height: 84rpx;
+  padding: 0;
+  margin-top: 20rpx;
+  font-size: 25rpx;
+  font-weight: 680;
+  line-height: 84rpx;
+  border-radius: 20rpx;
+}
+
+.save-button {
+  color: #fff;
+  background: #252c31;
+}
+
+.danger-button {
+  color: #d15252;
+  background: #fff;
+  border: 1rpx solid #efdddd;
+}

@@ -1,0 +1,260 @@
+<scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+  <view class="page" style="padding-top: {{navTop}}px;">
+    <view class="ambient ambient-left"></view>
+    <view class="ambient ambient-right"></view>
+
+    <view class="nav-bar">
+      <button class="vehicle-selector" bindtap="openDeviceList">
+        <view class="vehicle-title-row">
+          <text class="vehicle-title">{{deviceName}}</text>
+          <view class="selector-arrow"></view>
+        </view>
+      </button>
+
+    </view>
+
+    <view class="telemetry-row">
+      <view class="battery-overview" bindtap="refreshStatus">
+        <view class="battery-value-row">
+          <text class="battery-value">{{connected ? battery : '--'}}</text>
+          <text class="battery-unit">%</text>
+          <text class="battery-chevron">›</text>
+        </view>
+        <view class="battery-progress">
+          <view style="width: {{connected ? battery : 0}}%;"></view>
+        </view>
+        <text class="battery-caption">{{connected ? '车辆剩余电量' : '等待连接车辆'}}</text>
+      </view>
+
+      <!-- 无线状态、重命名和蓝牙连接使用三个独立图标 -->
+      <view class="wireless-overview">
+        <button class="wireless-icon signal-button" bindtap="refreshStatus" aria-label="刷新车辆状态">
+          <view class="top-signal-bars {{connected ? 'active' : ''}}">
+            <view></view><view></view><view></view>
+          </view>
+        </button>
+        <button class="wireless-icon settings-button" bindtap="openRenameSettings" aria-label="重命名车辆">
+          <image class="settings-symbol" src="/assets/settings.png" mode="aspectFit" />
+        </button>
+        <button
+          class="wireless-icon bluetooth-button {{connected ? 'active' : ''}} {{connecting ? 'connecting' : ''}}"
+          bindtap="handleBluetoothConnection"
+          hover-class="bluetooth-button-pressed"
+          hover-stay-time="120"
+          aria-label="{{connected ? '断开车辆蓝牙' : '连接车辆蓝牙'}}">
+          <image
+            class="bluetooth-symbol"
+            src="{{connected ? '/assets/bluetooth-connected.png' : (connecting ? '/assets/bluetooth-connecting.png' : '/assets/bluetooth.png')}}"
+            mode="aspectFit"
+          />
+        </button>
+      </view>
+    </view>
+
+    <view class="vehicle-stage">
+      <text class="stage-word">RIDE</text>
+      <view class="vehicle-glow"></view>
+      <view class="vehicle-floor"></view>
+      <image
+        class="vehicle-image {{vehicleType === 'compact' ? 'compact-vehicle' : 'large-vehicle'}} {{connected ? 'vehicle-ready' : ''}}"
+        src="{{vehicleType === 'compact' ? '/assets/scooter-compact.png' : '/assets/scooter.png'}}"
+        mode="widthFix"
+      />
+    </view>
+
+    <view class="control-section">
+      <view class="section-heading">
+        <view>
+          <text class="section-eyebrow">REMOTE CONTROL</text>
+          <text class="section-title">车辆控制</text>
+        </view>
+        <text class="section-status">{{lastAction}}</text>
+      </view>
+
+      <view class="control-grid">
+        <button
+          class="control-card power-card {{powered ? 'is-powered' : ''}}"
+          loading="{{busyCommand === 'power_on' || busyCommand === 'power_off'}}"
+          bindtap="togglePower"
+        >
+          <view class="control-icon power-icon">⏻</view>
+          <view class="control-copy">
+            <text class="control-title">{{powered ? '关闭车辆' : '启动车辆'}}</text>
+            <text class="control-desc">{{connected ? (powered ? '轻触关闭动力' : '安全确认后启动') : '点击连接车辆'}}</text>
+          </view>
+          <text class="control-arrow">↗</text>
+        </button>
+
+        <button
+          class="control-card find-card"
+          loading="{{busyCommand === 'find'}}"
+          bindtap="findVehicle"
+        >
+          <view class="control-icon locate-icon">⌖</view>
+          <view class="control-copy">
+            <text class="control-title">寻车</text>
+            <text class="control-desc">鸣笛并闪灯</text>
+          </view>
+          <text class="control-arrow">↗</text>
+        </button>
+      </view>
+    </view>
+
+    <!-- <view class="status-panel">
+      <view class="status-top">
+        <view>
+          <text class="status-label">VEHICLE STATUS</text>
+          <text class="status-title">{{connected ? '车辆在通信范围内' : '等待蓝牙连接'}}</text>
+        </view>
+        <button class="refresh-button" bindtap="refreshStatus">↻</button>
+      </view>
+      <view class="status-metrics">
+        <view class="status-metric">
+          <text class="metric-number">{{connected ? battery + '%' : '--'}}</text>
+          <text class="metric-name">剩余电量</text>
+        </view>
+        <view class="metric-divider"></view>
+        <view class="status-metric">
+          <text class="metric-number">{{connected ? signalText : '--'}}</text>
+          <text class="metric-name">蓝牙信号</text>
+        </view>
+        <view class="metric-divider"></view>
+        <view class="status-metric">
+          <text class="metric-number">{{connected ? (powered ? 'ON' : 'OFF') : '--'}}</text>
+          <text class="metric-name">动力状态</text>
+        </view>
+      </view>
+    </view> -->
+
+    <text class="safety-note">请在确认车辆周围安全后启动动力</text>
+  </view>
+</scroll-view>
+
+<view wx:if="{{showDevices}}" class="overlay" bindtap="closeDeviceList">
+  <view class="sheet" catchtap="stopPropagation">
+    <view class="sheet-handle"></view>
+    <view class="sheet-header">
+      <view>
+        <text class="sheet-kicker">MY VEHICLES</text>
+        <text class="sheet-title">选择你的车辆</text>
+        <text class="sheet-subtitle">仅显示名称以 TianlKey 开头的设备</text>
+      </view>
+      <button class="close-button" bindtap="closeDeviceList">×</button>
+    </view>
+    <view class="scan-state" wx:if="{{scanning}}">
+      <view class="spinner"></view>
+      <text>正在搜索附近设备…</text>
+    </view>
+    <scroll-view class="device-list" scroll-y>
+      <button
+        wx:for="{{devices}}"
+        wx:key="deviceId"
+        class="device-item"
+        data-device="{{item}}"
+        bindtap="selectDevice"
+      >
+        <view class="device-art">
+          <view class="device-wheel wheel-a"></view>
+          <view class="device-wheel wheel-b"></view>
+          <view class="device-body"></view>
+        </view>
+        <view class="device-info">
+          <text class="device-name">{{item.name}}</text>
+          <text class="device-id">{{item.signalText}} · {{item.deviceId}}</text>
+        </view>
+        <text class="device-arrow">›</text>
+      </button>
+      <view wx:if="{{!devices.length}}" class="empty">
+        <view class="empty-radar"><view></view></view>
+        <text class="empty-title">暂未发现车辆</text>
+        <text class="empty-tip">请确认 ESP32 已通电并处于广播状态</text>
+      </view>
+    </scroll-view>
+  </view>
+</view>
+
+<view wx:if="{{showSettings}}" class="overlay" bindtap="closeSettings">
+  <view class="sheet settings-sheet" catchtap="stopPropagation">
+    <view class="sheet-handle"></view>
+    <view class="sheet-header">
+      <view>
+        <text class="sheet-kicker">KEY SETTINGS</text>
+        <text class="sheet-title">钥匙设置</text>
+        <text class="sheet-subtitle">配置只保存在当前手机与车辆中</text>
+      </view>
+      <button class="close-button" bindtap="closeSettings">×</button>
+    </view>
+
+    <view wx:if="{{savedDevice}}" class="form-group vehicle-type-group">
+      <view class="form-title-row">
+        <text class="form-label">车型外观</text>
+        <text class="form-limit">每把钥匙独立保存</text>
+      </view>
+      <view class="vehicle-type-list">
+        <button
+          class="vehicle-type-card {{vehicleType === 'large' ? 'selected' : ''}}"
+          data-type="large"
+          bindtap="selectVehicleType"
+        >
+          <image src="/assets/scooter.png" mode="aspectFit" />
+          <view class="type-copy">
+            <text class="type-name">大车</text>
+            <text class="type-desc">踏板电动车</text>
+          </view>
+          <view class="type-radio"><view></view></view>
+        </button>
+        <button
+          class="vehicle-type-card {{vehicleType === 'compact' ? 'selected' : ''}}"
+          data-type="compact"
+          bindtap="selectVehicleType"
+        >
+          <image src="/assets/scooter-compact.png" mode="aspectFit" />
+          <view class="type-copy">
+            <text class="type-name">小车</text>
+            <text class="type-desc">轻便电动车</text>
+          </view>
+          <view class="type-radio"><view></view></view>
+        </button>
+      </view>
+    </view>
+
+    <view wx:if="{{savedDevice}}" class="form-group vehicle-name-group">
+      <view class="form-title-row">
+        <text class="form-label">车辆蓝牙名称</text>
+        <text class="form-limit">最多 12 字节</text>
+      </view>
+      <view class="vehicle-name-input">
+        <text class="name-prefix">TianlKey-</text>
+        <input
+          class="suffix-input"
+          maxlength="12"
+          value="{{vehicleSuffix}}"
+          placeholder="名称后缀"
+          bindinput="onVehicleSuffixInput"
+        />
+      </view>
+      <text class="form-help">固定保留 TianlKey 前缀，中文通常占 3 个字节</text>
+      <button
+        class="sync-name-button"
+        loading="{{busyCommand === 'rename'}}"
+        disabled="{{!connected || busyCommand === 'rename'}}"
+        bindtap="renameVehicle"
+      >同步名称到车辆</button>
+    </view>
+
+    <view class="form-group secret-group">
+      <text class="form-label">ESP32 配对密钥</text>
+      <input
+        class="secret-input"
+        password
+        maxlength="32"
+        value="{{secret}}"
+        placeholder="输入至少 6 位密钥"
+        bindinput="onSecretInput"
+      />
+      <text class="form-help">需要与 ESP32 固件中的密钥完全一致</text>
+    </view>
+    <button class="save-button" bindtap="saveSettings">保存钥匙设置</button>
+    <button wx:if="{{savedDevice}}" class="danger-button" bindtap="forgetVehicle">移除此车辆</button>
+  </view>
+</view>
