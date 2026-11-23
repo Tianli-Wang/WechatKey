@@ -1,72 +1,89 @@
-# TianlKey 微信小程序
+# TianlKey 电动车数字钥匙系统 (多端仓库)
 
-用微信小程序通过 BLE（低功耗蓝牙）连接 ESP32，将手机作为电动车数字钥匙。
+基于低功耗蓝牙（BLE）连接 ESP32 固件，将手机作为电动车无感数字钥匙。本仓库包含 **微信小程序端** 与 **Android 原生客户端**。
 
-## 当前功能
+---
 
-- 扫描名称以 `TianlKey` 开头的 ESP32
-- 保存车辆并在下次打开时自动重连
-- 启动车辆、关闭车辆、鸣笛闪灯
-- 在小程序中修改 `TianlKey-` 后缀并同步保存到 ESP32
-- 可为每把钥匙分别选择“大车”或“小车”外观
-- 接收车辆电量、锁定状态、通电状态和信号强度
-- 配对密钥保存在微信本地存储中
+## 目录结构
 
-> 微信开发者工具的模拟器无法完成真实 BLE 通信，请使用“真机调试”测试。
+```text
+WechatKey/
+├── android/                 # Android 原生客户端 (Kotlin + Jetpack Compose)
+│   ├── app/
+│   │   ├── src/main/java/   # 业务代码 (BLE 协议、ViewModel、Compose UI 等)
+│   │   ├── src/main/res/    # 资源文件 (Drawable、布局、颜色、主题)
+│   │   └── AndroidManifest.xml
+│   ├── build.gradle.kts
+│   └── settings.gradle.kts
+│
+├── wechat/                  # 微信小程序端
+│   ├── pages/index/         # 首页逻辑与界面
+│   ├── utils/ble.js         # 小程序 BLE 协议封装
+│   ├── assets/              # 图标与车型插图
+│   ├── app.json
+│   └── project.config.json
+│
+├── project.config.json      # 根目录微信开发者工具重定向配置
+└── README.md
+```
 
-车型外观以蓝牙 `deviceId` 为键保存在当前手机本地，只影响小程序中的车辆
-主视觉，不修改 ESP32 控制协议。点击首页顶部车辆名称可扫描或切换车辆，
-右侧依次为蓝牙连接、重命名和状态刷新图标。
+---
 
-连接过程会先读取 ESP32 实际暴露的 GATT 服务和特征，再开启状态通知。
-针对 iOS 在连接回调后服务尚未准备完成的情况，小程序会自动等待并重试。
-若连接失败，弹窗会显示具体阶段和系统错误码。
+## BLE 协议规范
 
-## BLE UUID
+UUID 定义如下（必须与 ESP32 固件中的配置保持一致）：
 
-UUID 集中定义在 `utils/ble.js`：
+| 用途 | UUID | 说明 |
+| :--- | :--- | :--- |
+| **Service (主服务)** | `6E400001-B5A3-F393-E0A9-E50E24DCCA9E` | 广播需携带该服务 UUID |
+| **Write (手机写入)** | `6E400002-B5A3-F393-E0A9-E50E24DCCA9E` | 支持 Write 或 WriteWithoutResponse |
+| **Notify (ESP32通知)** | `6E400003-B5A3-F393-E0A9-E50E24DCCA9E` | 支持 Notify 或 Indicate |
 
-| 用途 | UUID |
-| --- | --- |
-| Service | `6E400001-B5A3-F393-E0A9-E50E24DCCA9E` |
-| 小程序写入 | `6E400002-B5A3-F393-E0A9-E50E24DCCA9E` |
-| ESP32 通知 | `6E400003-B5A3-F393-E0A9-E50E24DCCA9E` |
+- **广播名称**：以 `TianlKey` 开头（如 `TianlKey-01` 或 `TianlKey-我的车`）。
+- **数据帧格式**：单行 UTF-8 JSON 格式，**以换行符 `\n` 结尾**。
 
-ESP32 的广播名称需要以 `TianlKey` 开头，例如 `TianlKey-01`，并在广播数据中包含上面的 Service UUID。
-
-## 通信协议
-
-小程序向写特征发送一行 UTF-8 JSON（以 `\n` 结尾）：
+### 1. 手机发送指令 (Write)
 
 ```json
 {"cmd":"unlock","key":"YOUR_SECRET","ts":1785220000}
 ```
 
-`cmd` 支持：
+支持的指令：
+- `status`: 查询车辆实时状态
+- `lock`: 车辆上锁
+- `unlock`: 车辆解锁
+- `power_on`: 启动车辆动力
+- `power_off`: 关闭车辆动力
+- `find`: 寻车（鸣笛闪灯）
+- `rename`: 重命名车辆后缀（携带 `"name":"后缀"`，后缀上限 12 个 UTF-8 字节）
 
-- `status`
-- `lock`
-- `unlock`
-- `power_on`
-- `power_off`
-- `find`
-- `rename`
-
-重命名指令额外携带 `name` 字段，此字段只表示名称后缀：
-
-```json
-{"cmd":"rename","key":"YOUR_SECRET","ts":1785220000,"name":"我的车"}
-```
-
-后缀最多为 12 个 UTF-8 字节。ESP32 会将其写入 NVS，断电重启后继续使用；
-固定前缀 `TianlKey-` 不允许通过小程序修改。
-
-ESP32 通过通知特征返回一行 JSON：
+### 2. ESP32 上报状态 (Notify)
 
 ```json
-{"locked":true,"powered":false,"battery":78,"rssi":-64,"name":"TianlKey-我的车","message":"状态已更新"}
+{"locked":true,"powered":false,"battery":78,"rssi":-64,"name":"TianlKey-我的车","message":"状态已更新","ok":true,"action":"rename"}
 ```
 
-## 安全说明
+---
 
-当前 `key + timestamp` 协议用于原型联调，不能抵抗重放攻击。正式用于车辆前，应让 ESP32 发送随机挑战值，并使用 HMAC-SHA256 对 `challenge + cmd + timestamp` 签名；同时设置指令过期时间、错误次数限制和物理配对流程。不要把固定密钥直接写进公开代码仓库。
+## 客户端功能与运行说明
+
+### 1. Android 原生客户端 (`android/`)
+- **技术栈**：Kotlin + Jetpack Compose (Material 3) + Android BLE GATT API
+- **核心功能**：
+  - 自动申请 Android 12+ (`BLUETOOTH_SCAN`, `BLUETOOTH_CONNECT`) 与低版本蓝牙/定位运行时权限
+  - 扫描筛选 `TianlKey` 设备并按信号强度（RSSI）实时排序
+  - MTU 协商（自动拓展至 512 字节避免长数据截断）
+  - 换行符 `\n` 粘包/分包完整帧解析缓冲
+  - 支持“大车”/“小车”外观切换
+  - 配对密钥本地存储与校验
+  - 启动车辆前安全警示二次确认弹窗
+  - 车辆重命名校验与 5 秒超时反馈
+- **开发与运行**：
+  1. 使用 **Android Studio** 打开 `android/` 目录。
+  2. 等待 Gradle 同步完成（推荐 Gradle 8.4+，JDK 17）。
+  3. 连接 Android 真机（需打开蓝牙与定位），直接点击 **Run 'app'** 运行调试。
+
+### 2. 微信小程序端 (`wechat/`)
+- **运行说明**：
+  - 使用 **微信开发者工具** 打开根目录 `WechatKey/`（已配置 `miniprogramRoot: "wechat/"`）或直接打开 `wechat/` 目录。
+  - BLE 功能在模拟器中无法进行真实通信，请使用“**真机调试**”测试。
